@@ -1,0 +1,53 @@
+#TODO write a description for this script
+#@author 
+#@category _NEW_
+#@keybinding 
+#@menupath 
+#@toolbar 
+
+
+from ghidra.program.model.symbol import SourceType
+
+# Documentation of permutation/substitution/matrix opcodes that potentially mean there is aes encryption
+# https://www.intel.com/content/dam/doc/white-paper/advanced-encryption-standard-new-instructions-set-paper.pdf
+# Define the set of substitution and permutation opcodes used in AES encryption
+
+SUBSTITUTION_OPCODES = ["PINSRB", "PSHUFB", "PBLENDW", "PINSRD", "PSLLDQ", "PSRLDQ", "SHUFPS", "SHUFPD", "PALIGNR", "PUNPCKLBW", "PUNPCKLWD", "PUNPCKLDQ", "PUNPCKLQDQ", "PUNPCKHBW", "PUNPCKHWD", "PUNPCKHDQ", "PUNPCKHQDQ", "PACKSSWB", "PACKSSDW", "PACKUSWB", "PACKUSDW", "PADDUSB", "PADDSB", "PADDD", "PADDQ", "PADDSW", "PADDUSW", "PSUBUSB", "PSUBSB", "PSUBD", "PSUBQ", "PSUBSW", "PSUBUSW", "PMULHUW", "PMULLW", "PMULHW", "PMULUDQ", "PMADDWD", "PSADBW", "PAND", "PANDN", "POR", "PXOR"]
+
+# Define the set of matrix-based AES opcodes
+MATRIX_OPCODES = ["MOVUPS", "MOVAPD", "MOVSS", "MOVDQA", "MOVDQU", "MOVHLPS", "MOVHPD", "MOVHPS", "MOVLHPS", "MOVLPD", "MOVLPS", "MOVNTDQ", "MOVNTDQA", "MOVNTI", "MOVNTPD", "MOVNTPS", "MOVSD", "MOVSS", "MOVD", "MOVDQ2Q", "MOVDQA32", "MOVDQU16", "MOVDQU8", "MOVDQU32", "MOVDQU64", "VPBROADCASTB", "VPBROADCASTW", "VPBROADCASTD", "VPBROADCASTQ", "VPMOVSXBW", "VPMOVZXBW", "VPMOVSXBD", "VPMOVZXBD", "VPMOVSXBQ", "VPMOVZXBQ", "VPMOVSXWD", "VPMOVZXWD", "VPMOVSXWQ", "VPMOVZXWQ", "VPMOVSXDQ", "VPMOVZXDQ", "VPMOVSXQ", "VPMOVZXQ", "VPMOVQ2DQ", "VPMOVUSWB", "VPMOVUSDB", "VPMOVUSDW", "VPMOVUSQB", "VPMOVUSQD", "VPMOVSWB", "VPMOVSDB", "VPMOVSDW", "VPMOVSQB", "VPMOVSQD", "VPBLENDD", "VPBLENDVB", "VPBLENDW", "VPBROADCASTB", "VPBROADCASTW", "VPBROADCASTD", "VPBROADCASTQ", "VPGATHERDD", "VPGATHERDQ", "VPGATHERQD", "VPGATHERQQ", "VPMASKMOVD", "VPMASKMOVQ", "VPMOVMXBW"]
+
+# Get the current program and its listing
+currentProgram = state.getCurrentProgram()
+listing = currentProgram.getListing()
+
+# Initialize variables to keep track of found opcodes
+found_sub_perm_opcode = False
+found_matrix_opcode = False
+found_opcode_mnemonic = ""
+
+# Loop through all the functions in the program
+for function in currentProgram.getFunctionManager().getFunctions(True):
+    found_sub_perm_opcode = False
+    found_matrix_opcode = False
+    print("Analyzing function: " + function.getName())
+    
+    # Loop through all the instructions in the function
+    for instruction in listing.getInstructions(function.getEntryPoint(), True):
+        # Get the opcode mnemonic for the instruction
+        mnemonic = instruction.getMnemonicString()
+        
+        # Check if the opcode is in the set of substitution and permutation opcodes
+        if mnemonic in SUBSTITUTION_OPCODES:
+            found_sub_perm_opcode = True
+            found_opcode_mnemonic = mnemonic
+        # Check if the opcode is in the set of matrix-based AES opcodes
+        elif mnemonic in MATRIX_OPCODES:
+            found_matrix_opcode = True
+            found_opcode_mnemonic = mnemonic
+
+    # Print appropriate messages based on found opcodes
+    if found_sub_perm_opcode:
+    	print("Potential AES encryption: Substitution and permutation opcode found (" + found_opcode_mnemonic + ")")
+    if found_matrix_opcode:
+        print("Potential AES encryption: Matrix-based AES opcode found (" + found_opcode_mnemonic + ")")
