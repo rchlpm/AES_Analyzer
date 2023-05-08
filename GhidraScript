@@ -1,4 +1,4 @@
-#TODO write a description for this script
+#This Ghidra Script attempts to analyze opcodes and identify if AES encryption is being utilized.
 #@author 
 #@category _NEW_
 #@keybinding 
